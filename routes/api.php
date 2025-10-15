@@ -50,4 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/explore/search', [ExploreController::class, 'searchUsers']);
     Route::get('/explore/user/{userId}/public-diaries', [ExploreController::class, 'getUserPublicDiaries']);
     Route::get('/explore/trending', [ExploreController::class, 'getTrendingDiaries']);
+    Route::get('/explore/test', function(Request $request) {
+        return response()->json(['message' => 'Explore API is working', 'user' => $request->user()->name]);
+    });
 });

@@ -52,6 +52,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the diaries for the user.
+     */
+    public function diaries()
+    {
+        return $this->hasMany(Diary::class);
+    }
+
+    /**
      * Check if user has admin role
      */
     public function isAdmin(): bool

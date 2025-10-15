@@ -21,12 +21,15 @@ const Explore = () => {
     setLoading(true);
     setSearchPerformed(true);
     try {
+      console.log('Searching for:', searchQuery);
       const response = await searchUsers(searchQuery);
+      console.log('Search response:', response);
       setSearchResults(response.data.users || []);
       setSelectedUser(null);
       setPublicDiaries([]);
     } catch (error) {
       console.error('Search failed:', error);
+      console.error('Error details:', error);
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -234,11 +237,11 @@ const Explore = () => {
                   
                   <div className="prose prose-gray max-w-none">
                     <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {truncateText(diary.content)}
+                      {truncateText(diary.message || diary.content)}
                     </p>
                   </div>
 
-                  {diary.content.length > 200 && (
+                  {(diary.message || diary.content).length > 200 && (
                     <button className="mt-3 text-black font-medium text-sm hover:underline">
                       Read more
                     </button>

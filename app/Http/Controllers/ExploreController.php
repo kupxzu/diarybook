@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Diary;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ExploreController extends Controller
 {
@@ -16,6 +17,10 @@ class ExploreController extends Controller
     {
         try {
             $query = $request->get('query', '');
+            
+            // Add debug logging
+            Log::info('Search query received: ' . $query);
+            Log::info('Current user ID: ' . $request->user()->id);
             
             if (empty($query)) {
                 return response()->json([
@@ -33,12 +38,16 @@ class ExploreController extends Controller
                       ->orWhere('email', 'like', '%' . $query . '%')
                       ->orWhere('bio', 'like', '%' . $query . '%');
                 })
-                ->withCount(['diaries as public_diaries_count' => function($q) {
-                    $q->where('is_public', true);
-                }])
                 ->select('id', 'name', 'email', 'bio', 'created_at')
                 ->limit(20)
                 ->get();
+
+            // Manually count public diaries for each user
+            foreach ($users as $user) {
+                $user->public_diaries_count = Diary::where('user_id', $user->id)
+                    ->where('status', 'public')
+                    ->count();
+            }
 
             return response()->json([
                 'success' => true,
@@ -66,11 +75,11 @@ class ExploreController extends Controller
             
             // Get public diaries for the specified user
             $diaries = Diary::where('user_id', $userId)
-                ->where('is_public', true)
+                ->where('status', 'public')
                 ->withCount('likes')
                 ->orderBy('created_at', 'desc')
                 ->limit(50)
-                ->get(['id', 'content', 'is_public', 'created_at', 'user_id']);
+                ->get(['id', 'message', 'status', 'created_at', 'user_id']);
 
             return response()->json([
                 'success' => true,
@@ -101,7 +110,7 @@ class ExploreController extends Controller
     public function getTrendingDiaries(Request $request)
     {
         try {
-            $diaries = Diary::where('is_public', true)
+            $diaries = Diary::where('status', 'public')
                 ->with(['user:id,name,email'])
                 ->withCount('likes')
                 ->orderBy('likes_count', 'desc')
